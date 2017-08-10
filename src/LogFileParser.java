@@ -49,6 +49,9 @@ public class LogFileParser {
                 logFileParser.createTime(dataList.get(0));
                 logFileParser.checkOperationType(dataList.get(3));
                 logFileParser.getFileName(dataList.get(2));
+                logFileParser.getFileType(dataList.get(2));
+                logFileParser.getParentFolder(dataList.get(2));
+                logFileParser.getFileSize(dataList);
             }
 
 
@@ -113,9 +116,53 @@ public class LogFileParser {
         return operationType;
     }
 
-    public String getFileName(String filePath){ // to find the name of the file. should be modified with file's unique number
+    public String getFileName(String filePath){ // to find the name of the file. should be modified with file's unique number using file info table
+        System.out.println("file name "+filePath);
+        return filePath;
+    }
+
+    public int getFileType(String filePath){ // to find file type using extension. if there is no extension then type will be 0.
+        int fileType = 0;
         String[] pathList = filePath.split("/");
-        System.out.println("file name "+pathList[pathList.length-1]);
-        return pathList[pathList.length-1];
+        String filename = pathList[pathList.length-1];
+        String fData = filename.split("\\.")[1];
+
+        switch (fData){ // need to add more types.
+            case "3gp":
+                fileType = 1;
+                break;
+            case "mp3":
+                fileType = 2;
+                break;
+            case "mp4":
+                fileType = 3;
+                break;
+            case "jpg":
+                fileType = 4;
+                break;
+        }
+        System.out.println("file type "+fileType);
+        return fileType;
+    }
+
+    public String getParentFolder(String filePath){ // to find the immediate parent folder. need to return unique number using info table
+        String[] pathList = filePath.split("/");
+        String parentFolder ="";
+        for (int i=1;i<pathList.length-1;i++){
+            parentFolder+= "/"+pathList[i];
+        }
+        System.out.println("parent folder "+parentFolder);
+        return parentFolder;
+    }
+
+    public int  getFileSize(List<String> dataList){ // to find the file size. need to include file size which are not modified
+        int fileSize=0;
+        if(dataList.get(3).equals("MODIFY")){ // only the modified files will give the size.
+            fileSize = Integer.valueOf(dataList.get(4));
+        } else{
+            // file size can get using info table. need to implement
+        }
+        System.out.println("file size "+fileSize);
+        return fileSize;
     }
 }
