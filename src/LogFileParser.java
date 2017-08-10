@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -22,44 +19,47 @@ public class LogFileParser {
             // Open the file that is the first
             // command line parameter
             FileInputStream fstream = new FileInputStream(targetFilePath);
-            // Get the object of DataInputStream
-            DataInputStream in = new DataInputStream(fstream);
-            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+            LogFileParser logFileParser = new LogFileParser();
 
-            //Read File Line By Line
-/*            while ((strLine = br.readLine()) != null)   {
-                // Print the content on the console
-                System.out.println (strLine);
-            }
-*/
-            for (int i=0 ;i<5000;i++){
+            for (int i=0 ;i<500;i++){
                 br.readLine();
             }
-            strLine = br.readLine();
-            System.out.println(strLine);
+            for (int i=0 ;i<10;i++){
+                strLine = br.readLine();
+                dataList= Arrays.asList(strLine.split(";")); // one line seperated by comma
 
-            //Close the input stream
-            in.close();
-            dataList= Arrays.asList(strLine.split(";")); // one line seperated by comma
+                if( ! dataList.get(2).endsWith("/")){ //check whether it is a file or folder then do the rest
+                    String dayOfWeek = logFileParser.createDayOfWeek(dataList.get(1));
+                    String formattedTime = logFileParser.createTime(dataList.get(0));
+                    String operationType = String.valueOf(logFileParser.checkOperationType(dataList.get(3)));
+                    String filename = logFileParser.getFileName(dataList.get(2));
+                    String fileType = String.valueOf(logFileParser.getFileType(dataList.get(2)));
+                    String parentFolder = logFileParser.getParentFolder(dataList.get(2));
+                    String fileSize = String.valueOf(logFileParser.getFileSize(dataList));
 
-            LogFileParser logFileParser = new LogFileParser();
-//            System.out.println(dataList.get(3));
-            if( ! dataList.get(2).endsWith("/")){ //check whether it is a file or folder then do the rest
-                logFileParser.createDayOfWeek(dataList.get(1));
-                logFileParser.createTime(dataList.get(0));
-                logFileParser.checkOperationType(dataList.get(3));
-                logFileParser.getFileName(dataList.get(2));
-                logFileParser.getFileType(dataList.get(2));
-                logFileParser.getParentFolder(dataList.get(2));
-                logFileParser.getFileSize(dataList);
+                    String output = dayOfWeek+","+formattedTime +","+ operationType+","+ filename +","+fileType +","+parentFolder +","+fileSize+"\n";
+                    logFileParser.writeToCSV(output);
+                }
             }
 
-
-
+            //Close the input stream
+            br.close();
 
         }catch (Exception e){//Catch exception if any
             System.err.println("Error: " + e.getMessage());
         }
+    }
+
+    public void writeToCSV(String line){
+        try {
+            FileWriter pw = new FileWriter("D:/semester 8/FYP/final project/test.csv", true);
+            pw.append(line);
+            pw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public String createDayOfWeek(String strTime){ // to find the day of the week
@@ -67,7 +67,7 @@ public class LogFileParser {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(longTime);
         String dayOfWeek = String.valueOf(calendar.get(Calendar.DAY_OF_WEEK)); // sunday=0 and saturday=7
-        System.out.println("day of week "+dayOfWeek);
+//        System.out.println("day of week "+dayOfWeek);
 
         return dayOfWeek;
     }
@@ -83,9 +83,9 @@ public class LogFileParser {
         }
 
         if (date != null) {
-            String formattedDate = writeFormat.format(date);
-            System.out.println("formatted time "+formattedDate);
-            return formattedDate;
+            String formattedTime = writeFormat.format(date);
+//            System.out.println("formatted time "+formattedTime);
+            return formattedTime;
         }
         return null;
     }
@@ -112,12 +112,12 @@ public class LogFileParser {
                 operationType = 6;
                 break;
         }
-        System.out.println("file operation "+ operationType);
+//        System.out.println("file operation "+ operationType);
         return operationType;
     }
 
     public String getFileName(String filePath){ // to find the name of the file. should be modified with file's unique number using file info table
-        System.out.println("file name "+filePath);
+//        System.out.println("file name "+filePath);
         return filePath;
     }
 
@@ -141,7 +141,7 @@ public class LogFileParser {
                 fileType = 4;
                 break;
         }
-        System.out.println("file type "+fileType);
+//        System.out.println("file type "+fileType);
         return fileType;
     }
 
@@ -151,18 +151,19 @@ public class LogFileParser {
         for (int i=1;i<pathList.length-1;i++){
             parentFolder+= "/"+pathList[i];
         }
-        System.out.println("parent folder "+parentFolder);
+//        System.out.println("parent folder "+parentFolder);
         return parentFolder;
     }
 
     public int  getFileSize(List<String> dataList){ // to find the file size. need to include file size which are not modified
-        int fileSize=0;
+        int fileSize;
         if(dataList.get(3).equals("MODIFY")){ // only the modified files will give the size.
             fileSize = Integer.valueOf(dataList.get(4));
         } else{
             // file size can get using info table. need to implement
+            fileSize =0;
         }
-        System.out.println("file size "+fileSize);
+ //       System.out.println("file size "+fileSize);
         return fileSize;
     }
 }
