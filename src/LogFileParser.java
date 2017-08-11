@@ -25,11 +25,11 @@ public class LogFileParser {
 
             int count=0;// want to remove. this is used only to test 100 lines.
 
-            logFileParser.writeToCSV("dayOfWeek , formattedTime , operationType, filename" +
-                    " ,fileType ,parentFolder ,fileSize,successorFile1,successorFile2,successorFile3,successorFile4" +
-                    ",predessorFile1,predessorFile2,predessorFile3,predessorFile4\n");
+            logFileParser.writeToCSV("dayOfWeek , formattedTime , operationType" +
+                    " ,fileType ,parentFolder ,fileSize,,predessorFile1,predessorFile2,predessorFile3,predessorFile4" +
+                    ", filename,successorFile1,successorFile2,successorFile3,successorFile4\n");
 
-            while((strLine = br.readLine())!=null && count!=50){
+            while((strLine = br.readLine())!=null && count!=6000){
                 count++;
                 lineNumber++;
 //                System.out.println(strLine);
@@ -46,7 +46,7 @@ public class LogFileParser {
                     String successorFiles = logFileParser.getSuccessorFiles(targetFilePath);
                     String predessorFiles = logFileParser.getPredecessorFiles((targetFilePath));
 
-                    String output = dayOfWeek+","+formattedTime +","+ operationType+","+ filename +","+fileType +","+parentFolder +","+fileSize+","+successorFiles+","+predessorFiles+"\n";
+                    String output = dayOfWeek+","+formattedTime +","+ operationType+","+fileType +","+parentFolder +","+fileSize+","+predessorFiles+","+ filename +","+successorFiles+"\n";
                     logFileParser.writeToCSV(output);
                 }
             }
