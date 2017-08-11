@@ -2,10 +2,7 @@ import java.io.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by anuradha on 8/9/17.
@@ -25,7 +22,7 @@ public class LogFileParser {
 
             int count=0;// want to remove. this is used only to test 100 lines.
 
-            while((strLine = br.readLine())!=null && count!=100){
+            while((strLine = br.readLine())!=null && count!=50){
                 count++;
                 lineNumber++;
 //                System.out.println(strLine);
@@ -40,8 +37,9 @@ public class LogFileParser {
                     String parentFolder = logFileParser.getParentFolder(dataList.get(2));
                     String fileSize = String.valueOf(logFileParser.getFileSize(dataList));
                     String successorFiles = logFileParser.getSuccessorFiles(targetFilePath);
+                    String predessorFiles = logFileParser.getPredecessorFiles((targetFilePath));
 
-                    String output = dayOfWeek+","+formattedTime +","+ operationType+","+ filename +","+fileType +","+parentFolder +","+fileSize+","+successorFiles+"\n";
+                    String output = dayOfWeek+","+formattedTime +","+ operationType+","+ filename +","+fileType +","+parentFolder +","+fileSize+","+successorFiles+","+predessorFiles+"\n";
                     logFileParser.writeToCSV(output);
                 }
             }
@@ -144,6 +142,12 @@ public class LogFileParser {
                 case "jpg":
                     fileType = 4;
                     break;
+                case "png":
+                    fileType = 5;
+                    break;
+                case "txt":
+                    fileType = 6;
+                    break;
             }
         }
 
@@ -203,5 +207,45 @@ public class LogFileParser {
         return successorPath;
 
     }
+
+    public String getPredecessorFiles(String targetFilePath){
+        Queue<String> predQueue = new LinkedList();
+        String predecessorPath ;
+        String predecessorFiles = "";
+        try {
+            // Open the file that is the first
+            // command line parameter
+            FileInputStream fstream = new FileInputStream(targetFilePath);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+            String line;
+            int lineCount=0;
+            int predSize=0;
+            while((line=br.readLine())!=null && lineCount<lineNumber-1){
+                lineCount++;
+                List<String> dataList = Arrays.asList(line.split(";")); // one line seperated by comma
+                if(!(dataList.get(2).endsWith("/"))){
+                    predecessorPath = dataList.get(2);
+                    if(predSize<4){
+                        predQueue.add(predecessorPath);
+                        predSize++;
+                    } else {
+                        predQueue.remove();
+                        predQueue.add(predecessorPath);
+                    }
+                }
+            }
+            br.close();
+            System.out.println("size of queue "+predQueue.size());
+        }catch(Exception e){//Catch exception if any
+            System.err.println("Error: " + e);
+        }
+        if (predQueue.size()==4){
+            for (String item:predQueue) {
+                predecessorFiles+= ":"+predQueue.element(); // need to add comma instead colon
+            }
+        }
+        return predecessorFiles;
+    }
+
 
 }
