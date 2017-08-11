@@ -11,6 +11,7 @@ import java.util.List;
  * Created by anuradha on 8/9/17.
  */
 public class LogFileParser {
+    public static int lineNumber=0;
     public static void main(String[] args) {
         String targetFilePath = "D:/semester 8/FYP/final project/test.txt";
         String strLine;
@@ -22,12 +23,13 @@ public class LogFileParser {
             BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
             LogFileParser logFileParser = new LogFileParser();
 
-            for (int i=0 ;i<500;i++){
-                br.readLine();
-            }
-            for (int i=0 ;i<10;i++){
-                strLine = br.readLine();
-                dataList= Arrays.asList(strLine.split(";")); // one line seperated by comma
+            int count=0;// want to remove. this is used only to test 100 lines.
+
+            while((strLine = br.readLine())!=null && count!=100){
+                count++;
+                lineNumber++;
+//                System.out.println(strLine);
+                dataList = Arrays.asList(strLine.split(";")); // one line seperated by comma
 
                 if( ! dataList.get(2).endsWith("/")){ //check whether it is a file or folder then do the rest
                     String dayOfWeek = logFileParser.createDayOfWeek(dataList.get(1));
@@ -37,17 +39,18 @@ public class LogFileParser {
                     String fileType = String.valueOf(logFileParser.getFileType(dataList.get(2)));
                     String parentFolder = logFileParser.getParentFolder(dataList.get(2));
                     String fileSize = String.valueOf(logFileParser.getFileSize(dataList));
+                    String successorFiles = logFileParser.getSuccessorFiles(targetFilePath);
 
-                    String output = dayOfWeek+","+formattedTime +","+ operationType+","+ filename +","+fileType +","+parentFolder +","+fileSize+"\n";
+                    String output = dayOfWeek+","+formattedTime +","+ operationType+","+ filename +","+fileType +","+parentFolder +","+fileSize+","+successorFiles+"\n";
                     logFileParser.writeToCSV(output);
                 }
             }
-
+            System.out.println("Total line numbers "+lineNumber);
             //Close the input stream
             br.close();
 
         }catch (Exception e){//Catch exception if any
-            System.err.println("Error: " + e.getMessage());
+            System.err.println("Error: " + e);
         }
     }
 
@@ -125,22 +128,25 @@ public class LogFileParser {
         int fileType = 0;
         String[] pathList = filePath.split("/");
         String filename = pathList[pathList.length-1];
-        String fData = filename.split("\\.")[1];
+        if(filename.contains(".")){
+            String fData = filename.split("\\.")[1];
 
-        switch (fData){ // need to add more types.
-            case "3gp":
-                fileType = 1;
-                break;
-            case "mp3":
-                fileType = 2;
-                break;
-            case "mp4":
-                fileType = 3;
-                break;
-            case "jpg":
-                fileType = 4;
-                break;
+            switch (fData){ // need to add more types.
+                case "3gp":
+                    fileType = 1;
+                    break;
+                case "mp3":
+                    fileType = 2;
+                    break;
+                case "mp4":
+                    fileType = 3;
+                    break;
+                case "jpg":
+                    fileType = 4;
+                    break;
+            }
         }
+
 //        System.out.println("file type "+fileType);
         return fileType;
     }
@@ -166,4 +172,36 @@ public class LogFileParser {
  //       System.out.println("file size "+fileSize);
         return fileSize;
     }
+
+    public String getSuccessorFiles(String targetFilePath) {
+        int count = 0;
+        String successorPath = null;
+        try {
+            // Open the file that is the first
+            // command line parameter
+            FileInputStream fstream = new FileInputStream(targetFilePath);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+            String line;
+
+            for (int i=1;i<=lineNumber;i++){
+                br.readLine();
+            }
+            while((line=br.readLine())!=null){
+                List<String> dataList = Arrays.asList(line.split(";")); // one line seperated by comma
+                if(!(dataList.get(2).endsWith("/")) && count!=1){
+                    successorPath = dataList.get(2);
+                    count++;
+                }
+
+            }
+            br.close();
+
+        }catch(Exception e){//Catch exception if any
+            System.err.println("Error: " + e);
+        }
+//        System.out.println("successor file "+successorPath);
+        return successorPath;
+
+    }
+
 }
