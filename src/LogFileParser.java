@@ -3,12 +3,15 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.sql.*;
+import java.util.Date;
 
 /**
  * Created by anuradha on 8/9/17.
  */
 public class LogFileParser {
     public static int lineNumber=0;
+
     public static void main(String[] args) {
         String targetFilePath = "D:/semester 8/FYP/final project/test.txt";
         String strLine;
@@ -21,6 +24,10 @@ public class LogFileParser {
             LogFileParser logFileParser = new LogFileParser();
 
             int count=0;// want to remove. this is used only to test 100 lines.
+
+            logFileParser.writeToCSV("dayOfWeek , formattedTime , operationType, filename" +
+                    " ,fileType ,parentFolder ,fileSize,successorFile1,successorFile2,successorFile3,successorFile4" +
+                    ",predessorFile1,predessorFile2,predessorFile3,predessorFile4\n");
 
             while((strLine = br.readLine())!=null && count!=50){
                 count++;
@@ -48,7 +55,7 @@ public class LogFileParser {
             br.close();
 
         }catch (Exception e){//Catch exception if any
-            System.err.println("Error: " + e);
+            System.err.println("Error in main() : " + e);
         }
     }
 
@@ -119,7 +126,15 @@ public class LogFileParser {
 
     public String getFileName(String filePath){ // to find the name of the file. should be modified with file's unique number using file info table
 //        System.out.println("file name "+filePath);
-        return filePath;
+        String fileValue=null;
+        try {
+            DBOperation dbo = DBOperation.getInstance();
+            fileValue=String.valueOf(dbo.getFileNameValue(filePath));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return fileValue;
     }
 
     public int getFileType(String filePath){ // to find file type using extension. if there is no extension then type will be 0.
@@ -161,17 +176,29 @@ public class LogFileParser {
         for (int i=1;i<pathList.length-1;i++){
             parentFolder+= "/"+pathList[i];
         }
+        String fileValue=null;
+        try {
+            DBOperation dbo = DBOperation.getInstance();
+            fileValue=String.valueOf(dbo.getFileNameValue(parentFolder));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 //        System.out.println("parent folder "+parentFolder);
-        return parentFolder;
+        return fileValue;
     }
 
     public int  getFileSize(List<String> dataList){ // to find the file size. need to include file size which are not modified
-        int fileSize;
+        int fileSize=0;
         if(dataList.get(3).equals("MODIFY")){ // only the modified files will give the size.
             fileSize = Integer.valueOf(dataList.get(4));
         } else{
-            // file size can get using info table. need to implement
-            fileSize =0;
+            try {
+                DBOperation dbo = DBOperation.getInstance();
+                fileSize=dbo.getFileSize(dataList.get(2));
+            } catch (SQLException e) {
+                System.out.println(e);
+            }
+
         }
  //       System.out.println("file size "+fileSize);
         return fileSize;
@@ -180,6 +207,8 @@ public class LogFileParser {
     public String getSuccessorFiles(String targetFilePath) {
         int count = 0;
         String successorPath = null;
+        String fileValue="";
+        String[] successorArray=new String[4];
         try {
             // Open the file that is the first
             // command line parameter
@@ -192,19 +221,27 @@ public class LogFileParser {
             }
             while((line=br.readLine())!=null){
                 List<String> dataList = Arrays.asList(line.split(";")); // one line seperated by comma
-                if(!(dataList.get(2).endsWith("/")) && count!=1){
+                if(!(dataList.get(2).endsWith("/")) && count!=4){
                     successorPath = dataList.get(2);
+
+                    try {
+                        DBOperation dbo = DBOperation.getInstance();
+                        successorArray[count]=String.valueOf(dbo.getFileNameValue(successorPath));
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
                     count++;
                 }
 
             }
+            fileValue+=successorArray[0]+","+successorArray[1]+","+successorArray[2]+","+successorArray[3];
             br.close();
 
         }catch(Exception e){//Catch exception if any
             System.err.println("Error: " + e);
         }
 //        System.out.println("successor file "+successorPath);
-        return successorPath;
+        return fileValue;
 
     }
 
@@ -235,15 +272,23 @@ public class LogFileParser {
                 }
             }
             br.close();
-            System.out.println("size of queue "+predQueue.size());
+//            System.out.println("size of queue "+predQueue.size());
         }catch(Exception e){//Catch exception if any
             System.err.println("Error: " + e);
         }
+        String[] predeessorArray=new String[4];
         if (predQueue.size()==4){
-            for (String item:predQueue) {
-                predecessorFiles+= ":"+predQueue.element(); // need to add comma instead colon
+            for (int i=0;i<4;i++) {
+                //predecessorFiles+= ":"+predQueue.element(); // need to add comma instead colon
+                try {
+                    DBOperation dbo = DBOperation.getInstance();
+                    predeessorArray[i]=String.valueOf(dbo.getFileNameValue(predQueue.element()));
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
         }
+        predecessorFiles+=predeessorArray[0]+","+predeessorArray[1]+","+predeessorArray[2]+","+predeessorArray[3];
         return predecessorFiles;
     }
 
