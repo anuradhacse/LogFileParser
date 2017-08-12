@@ -25,9 +25,9 @@ public class LogFileParser {
 
             int count=0;// want to remove. this is used only to test 100 lines.
 
-            /*logFileParser.writeToCSV("dayOfWeek , formattedTime , operationType" +
+            logFileParser.writeToCSV("dayOfWeek , formattedTime , operationType" +
                     " ,fileType ,parentFolder ,fileSize,predessorFile1,predessorFile2,predessorFile3,predessorFile4" +
-                    ", filename,successorFile1,successorFile2,successorFile3,successorFile4\n");*/
+                    ", filename,successorFile1,successorFile2,successorFile3,successorFile4\n");
 
             while((strLine = br.readLine())!=null && count!=200){
                 count++;
