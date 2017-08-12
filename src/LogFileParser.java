@@ -25,11 +25,11 @@ public class LogFileParser {
 
             int count=0;// want to remove. this is used only to test 100 lines.
 
-            logFileParser.writeToCSV("dayOfWeek , formattedTime , operationType" +
-                    " ,fileType ,parentFolder ,fileSize,,predessorFile1,predessorFile2,predessorFile3,predessorFile4" +
-                    ", filename,successorFile1,successorFile2,successorFile3,successorFile4\n");
+            /*logFileParser.writeToCSV("dayOfWeek , formattedTime , operationType" +
+                    " ,fileType ,parentFolder ,fileSize,predessorFile1,predessorFile2,predessorFile3,predessorFile4" +
+                    ", filename,successorFile1,successorFile2,successorFile3,successorFile4\n");*/
 
-            while((strLine = br.readLine())!=null && count!=6000){
+            while((strLine = br.readLine())!=null && count!=200){
                 count++;
                 lineNumber++;
 //                System.out.println(strLine);
@@ -249,6 +249,8 @@ public class LogFileParser {
         Queue<String> predQueue = new LinkedList();
         String predecessorPath ;
         String predecessorFiles = "";
+        String[] pathArray = new String[4];
+        int predSize=0;
         try {
             // Open the file that is the first
             // command line parameter
@@ -256,18 +258,28 @@ public class LogFileParser {
             BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
             String line;
             int lineCount=0;
-            int predSize=0;
+
+
             while((line=br.readLine())!=null && lineCount<lineNumber-1){
                 lineCount++;
                 List<String> dataList = Arrays.asList(line.split(";")); // one line seperated by comma
                 if(!(dataList.get(2).endsWith("/"))){
                     predecessorPath = dataList.get(2);
-                    if(predSize<4){
+                    /*if(predSize<4){
                         predQueue.add(predecessorPath);
                         predSize++;
                     } else {
                         predQueue.remove();
                         predQueue.add(predecessorPath);
+                    }*/
+                    if(predSize<4){
+                        pathArray[predSize]=predecessorPath;
+                        predSize++;
+                    } else{
+                        pathArray[0]=pathArray[1];
+                        pathArray[1]=pathArray[2];
+                        pathArray[2]=pathArray[3];
+                        pathArray[3]=predecessorPath;
                     }
                 }
             }
@@ -277,15 +289,16 @@ public class LogFileParser {
             System.err.println("Error: " + e);
         }
         String[] predeessorArray=new String[4];
-        if (predQueue.size()==4){
+        if (predSize>=4){
             for (int i=0;i<4;i++) {
-                //predecessorFiles+= ":"+predQueue.element(); // need to add comma instead colon
                 try {
                     DBOperation dbo = DBOperation.getInstance();
-                    predeessorArray[i]=String.valueOf(dbo.getFileNameValue(predQueue.element()));
+                    predeessorArray[i]=String.valueOf(dbo.getFileNameValue(pathArray[i]));
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
+
+                //System.out.println(pathArray[i]);
             }
         }
         predecessorFiles+=predeessorArray[0]+","+predeessorArray[1]+","+predeessorArray[2]+","+predeessorArray[3];
