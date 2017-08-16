@@ -170,6 +170,12 @@ public class LogFileParser {
                 case "txt":
                     fileType = 6;
                     break;
+                case "pdf":
+                    fileType = 7;
+                    break;
+                case "zip":
+                    fileType = 8;
+                    break;
             }
         }
 
