@@ -48,7 +48,7 @@ public class DBOperation {
 
     public int getFileNameValue(String path) throws SQLException{
         setConenction();
-        pst = con.prepareStatement("SELECT file_id FROM 352150070229403_files WHERE path = ?");
+        pst = con.prepareStatement("SELECT file_id FROM 352315061353062_files WHERE path = ?");
         pst.setString(1,path);
         resultSet=pst.executeQuery();
         int fileValue=0;
@@ -61,7 +61,7 @@ public class DBOperation {
 
     public int getFileSize(String path) throws SQLException{
         setConenction();
-        pst = con.prepareStatement("SELECT size FROM 352150070229403_files WHERE path = ?");
+        pst = con.prepareStatement("SELECT size FROM 352315061353062_files WHERE path = ?");
         pst.setString(1,path);
         resultSet=pst.executeQuery();
         int fileSize=0;

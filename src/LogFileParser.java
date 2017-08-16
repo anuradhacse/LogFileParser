@@ -37,7 +37,7 @@ public class LogFileParser {
 
                 if( ! dataList.get(2).endsWith("/")){ //check whether it is a file or folder then do the rest
                     String dayOfWeek = logFileParser.createDayOfWeek(dataList.get(1));
-                    String formattedTime = logFileParser.createTime(dataList.get(0));
+                    String formattedTime = logFileParser.createTime(dataList.get(1));
                     String operationType = String.valueOf(logFileParser.checkOperationType(dataList.get(3)));
                     String filename = logFileParser.getFileName(dataList.get(2));
                     String fileType = String.valueOf(logFileParser.getFileType(dataList.get(2)));
@@ -81,18 +81,22 @@ public class LogFileParser {
     }
 
     public String createTime(String timeInfo){ // to find time of the day in 24 hour format
+        Long longTime = Long.valueOf(timeInfo);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(longTime);
+
         DateFormat readFormat = new SimpleDateFormat( "dd MMM yyyy hh:mm:ss aa");
         DateFormat writeFormat = new SimpleDateFormat( "HHmmss");
-        Date date = null;
-        try {
+        Date date = calendar.getTime();
+        /*try {
             date = readFormat.parse(timeInfo);
         } catch (ParseException e) {
             e.printStackTrace();
-        }
+        }*/
 
         if (date != null) {
             String formattedTime = writeFormat.format(date);
-//            System.out.println("formatted time "+formattedTime);
+ //           System.out.println("formatted time "+formattedTime);
             return formattedTime;
         }
         return null;
@@ -130,6 +134,9 @@ public class LogFileParser {
         try {
             DBOperation dbo = DBOperation.getInstance();
             fileValue=String.valueOf(dbo.getFileNameValue(filePath));
+            if(fileValue.equals("0")){
+                System.out.println("file name "+filePath);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -180,6 +187,9 @@ public class LogFileParser {
         try {
             DBOperation dbo = DBOperation.getInstance();
             fileValue=String.valueOf(dbo.getFileNameValue(parentFolder));
+            if(fileValue.equals("0")){
+                System.out.println("Parent folder "+filePath);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
