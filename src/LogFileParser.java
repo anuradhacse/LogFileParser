@@ -11,6 +11,7 @@ import java.util.Date;
  */
 public class LogFileParser {
     public static int lineNumber=0;
+    public static String prevPath=null;
 
     public static void main(String[] args) {
         String targetFilePath = "D:/semester 8/FYP/final project/test.txt";
@@ -25,17 +26,21 @@ public class LogFileParser {
 
             int count=0;// want to remove. this is used only to test 100 lines.
 
-            logFileParser.writeToCSV("dayOfWeek , formattedTime , operationType" +
+            /*logFileParser.writeToCSV("dayOfWeek , hour , operationType" +
                     " ,fileType ,parentFolder ,fileSize,predessorFile1,predessorFile2,predessorFile3,predessorFile4" +
-                    ", filename,successorFile1,successorFile2,successorFile3,successorFile4\n");
+                    ", filename,successorFile1,successorFile2,successorFile3,successorFile4\n");*/
 
-            while((strLine = br.readLine())!=null && count!=200){
-                count++;
+            while((strLine = br.readLine())!=null && count!=500){
                 lineNumber++;
 //                System.out.println(strLine);
                 dataList = Arrays.asList(strLine.split(";")); // one line seperated by comma
 
-                if( ! dataList.get(2).endsWith("/")){ //check whether it is a file or folder then do the rest
+                String newPath = dataList.get(2);
+
+                if( ! newPath.endsWith("/") && ! newPath.equals(prevPath)){ //check whether it is a file or folder then do the rest
+                    count++;
+                    prevPath = newPath;
+
                     String dayOfWeek = logFileParser.createDayOfWeek(dataList.get(1));
                     String formattedTime = logFileParser.createTime(dataList.get(1));
                     String operationType = String.valueOf(logFileParser.checkOperationType(dataList.get(3)));
@@ -46,8 +51,12 @@ public class LogFileParser {
                     String successorFiles = logFileParser.getSuccessorFiles(targetFilePath);
                     String predessorFiles = logFileParser.getPredecessorFiles((targetFilePath));
 
-                    String output = dayOfWeek+","+formattedTime +","+ operationType+","+fileType +","+parentFolder +","+fileSize+","+predessorFiles+","+ filename +","+successorFiles+"\n";
-                    logFileParser.writeToCSV(output);
+                    if(successorFiles!=null && predessorFiles!=null){
+                        String output = dayOfWeek+","+formattedTime +","+ operationType+","+fileType +","+parentFolder +","+fileSize+","+predessorFiles+","+ filename +","+successorFiles+"\n";
+                        logFileParser.writeToCSV(output);
+                    }
+
+
                 }
             }
             System.out.println("Total line numbers "+lineNumber);
@@ -86,8 +95,10 @@ public class LogFileParser {
         calendar.setTimeInMillis(longTime);
 
         DateFormat readFormat = new SimpleDateFormat( "dd MMM yyyy hh:mm:ss aa");
-        DateFormat writeFormat = new SimpleDateFormat( "HHmmss");
+        DateFormat writeFormat = new SimpleDateFormat( "HH");
         Date date = calendar.getTime();
+//        System.out.println("date "+String.valueOf(date));
+
         /*try {
             date = readFormat.parse(timeInfo);
         } catch (ParseException e) {
@@ -223,7 +234,7 @@ public class LogFileParser {
     public String getSuccessorFiles(String targetFilePath) {
         int count = 0;
         String successorPath = null;
-        String fileValue="";
+        String fileValue=null;
         String[] successorArray=new String[4];
         try {
             // Open the file that is the first
@@ -250,7 +261,10 @@ public class LogFileParser {
                 }
 
             }
-            fileValue+=successorArray[0]+","+successorArray[1]+","+successorArray[2]+","+successorArray[3];
+            if(successorArray[0]!=null && successorArray[1]!=null && successorArray[2]!=null &&successorArray[3]!=null ){
+                fileValue+=successorArray[0]+","+successorArray[1]+","+successorArray[2]+","+successorArray[3];
+            }
+
             br.close();
 
         }catch(Exception e){//Catch exception if any
@@ -264,7 +278,7 @@ public class LogFileParser {
     public String getPredecessorFiles(String targetFilePath){
         Queue<String> predQueue = new LinkedList();
         String predecessorPath ;
-        String predecessorFiles = "";
+        String predecessorFiles = null;
         String[] pathArray = new String[4];
         int predSize=0;
         try {
@@ -317,7 +331,10 @@ public class LogFileParser {
                 //System.out.println(pathArray[i]);
             }
         }
-        predecessorFiles+=predeessorArray[0]+","+predeessorArray[1]+","+predeessorArray[2]+","+predeessorArray[3];
+        if (predeessorArray[0]!= null && predeessorArray[1]!= null && predeessorArray[2]!= null && predeessorArray[3]!= null ){
+            predecessorFiles+=predeessorArray[0]+","+predeessorArray[1]+","+predeessorArray[2]+","+predeessorArray[3];
+        }
+
         return predecessorFiles;
     }
 
