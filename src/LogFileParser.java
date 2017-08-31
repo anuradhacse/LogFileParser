@@ -14,9 +14,10 @@ public class LogFileParser {
     public static String prevPath=null;
 
     public static void main(String[] args) {
-        String targetFilePath = "D:/semester 8/FYP/final project/test.txt";
+        String targetFilePath = "D:/semester 8/FYP/final project/ftest.txt";
         String strLine;
         List<String> dataList;
+        //new LogFileParser().filterFiles(targetFilePath,"ftest");
         try{
             // Open the file that is the first
             // command line parameter
@@ -30,7 +31,7 @@ public class LogFileParser {
                     " ,fileType ,parentFolder ,fileSize,predessorFile1,predessorFile2,predessorFile3,predessorFile4" +
                     ", filename,successorFile1,successorFile2,successorFile3,successorFile4\n");
 
-            while((strLine = br.readLine())!=null && count!=500){
+            while((strLine = br.readLine())!=null && count!=50){
                 count++;
                 lineNumber++;
 //                System.out.println(strLine);
@@ -51,7 +52,7 @@ public class LogFileParser {
                     String successorFiles = logFileParser.getSuccessorFiles(targetFilePath);
                     String predessorFiles = logFileParser.getPredecessorFiles((targetFilePath));
 
-                    if(successorFiles!=null && predessorFiles!=null){
+                    if(successorFiles!=null && predessorFiles!=null && !parentFolder.equals("0") && !filename.equals("0")){
                         String output = dayOfWeek+","+formattedTime +","+ operationType+","+fileType +","+parentFolder +","+fileSize+","+predessorFiles+","+ filename +","+successorFiles+"\n";
                         logFileParser.writeToCSV(output);
                     }
@@ -131,8 +132,17 @@ public class LogFileParser {
             case "CREATE":
                 operationType = 5;
                 break;
-            case "CLOSE_WRITE":
+            case "ATTRIB":
                 operationType = 6;
+                break;
+            case "MOVED_FROM":
+                operationType = 7;
+                break;
+            case "MOVED_TO":
+                operationType = 8;
+                break;
+            case "MOVED_SELF":
+                operationType = 9;
                 break;
         }
 //        System.out.println("file operation "+ operationType);
@@ -205,7 +215,7 @@ public class LogFileParser {
             DBOperation dbo = DBOperation.getInstance();
             fileValue=String.valueOf(dbo.getFileNameValue(parentFolder));
             if(fileValue.equals("0")){
-                System.out.println("Parent folder "+filePath);
+                System.out.println("Parent folder "+parentFolder);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -340,6 +350,27 @@ public class LogFileParser {
         }
 
         return predecessorFiles;
+    }
+
+    public void filterFiles(String targetFilePath,String name){
+        try {
+            String line;
+            FileInputStream fstream = new FileInputStream(targetFilePath);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+            FileWriter pw = new FileWriter("D:/semester 8/FYP/final project/"+name+".txt", true);
+            while((line=br.readLine())!=null){
+                List<String> dataList = Arrays.asList(line.split(";")); // one line seperated by comma
+                String operation = dataList.get(3);
+                if(operation.equals("OPEN") || operation.equals("ATTRIB") || operation.equals("CREATE") || operation.equals("MOVED_FROM")
+                        || operation.equals("MOVED_TO") || operation.equals("MOVED_SELF")){
+
+                    pw.append(line+'\n');
+                }
+            }
+            pw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
